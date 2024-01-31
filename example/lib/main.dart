@@ -1,11 +1,14 @@
+ import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:video_timeline_edittor/video_editor.dart';
 import 'package:video_timeline_edittor/video_timeline_edittor.dart';
-
+import 'package:image_picker/image_picker.dart';
 void main() {
-  runApp(const MyApp());
+  runApp(mainApp());
 }
 
 class MyApp extends StatefulWidget {
@@ -17,11 +20,32 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
+ late VideoEditorController videoEditorController;
+ StreamController<bool> rebuildstream = StreamController.broadcast();
 
   @override
   void initState() {
     super.initState();
     initPlatformState();
+    _pickVideo();
+  }
+
+  final ImagePicker _picker = ImagePicker();
+
+  void _pickVideo() async {
+    final XFile? file = await _picker.pickVideo(source: ImageSource.gallery);
+
+    if (mounted && file != null) {
+      videoEditorController = VideoEditorController.file(File(file.path),   minDuration: const Duration(seconds: 1),
+        maxDuration: const Duration(seconds: 10),);
+      rebuildstream.add(true);
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute<void>(
+      //     builder: (BuildContext context) => VideoEditor(file: File(file.path)),
+      //   ),
+      // );
+    }
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -48,15 +72,49 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
+
+    return Scaffold(
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+        body: Container(
+            width: MediaQuery.of(context).size.width,
+            margin: const EdgeInsets.symmetric(vertical: 60 / 4),
+          child: StreamBuilder<bool>(
+            stream:rebuildstream.stream,
+            initialData: false,
+            builder: (context,snapshot){
+              if(snapshot.data == false){
+                return Container();
+              }
+              return TrimSlider(
+                height: 60,
+                horizontalMargin: 60 / 4,
+                controller: videoEditorController,
+                child: TrimTimeline(
+                  controller: videoEditorController,
+                  padding: const EdgeInsets.only(top: 10),
+                ),
+              );
+            },
+          )
         ),
-      ),
-    );
+      );
+  }
+}
+
+
+class mainApp extends StatefulWidget{
+  @override
+  State<StatefulWidget> createState() {
+    return mainappstate();
+  }
+}
+
+class mainappstate extends State<mainApp>{
+  @override
+  Widget build(BuildContext context) {
+    return  MaterialApp(
+        home: MyApp());
   }
 }

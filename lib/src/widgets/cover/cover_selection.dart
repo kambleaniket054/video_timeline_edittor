@@ -12,9 +12,11 @@ import 'package:video_timeline_edittor/src/widgets/image_viewer.dart';
 import 'package:video_timeline_edittor/src/widgets/transform.dart';
 
 class CoverSelection extends StatefulWidget {
+  var key;
+
   /// Slider that allow to select a generated cover
-  const CoverSelection({
-    super.key,
+   CoverSelection({
+    this.key,
     required this.controller,
     this.size = 60,
     this.quantity = 5,
@@ -197,7 +199,7 @@ class _CoverSelectionState extends State<CoverSelection>
                       _layout = size;
                       // init the widget with controller values
                       WidgetsBinding.instance
-                          .addPostFrameCallback((_) => _scaleRect());
+                          ?.addPostFrameCallback((_) => _scaleRect());
                     }
 
                     return RepaintBoundary(

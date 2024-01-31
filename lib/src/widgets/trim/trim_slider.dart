@@ -12,9 +12,11 @@ enum _TrimBoundaries { left, right, inside, progress }
 const _touchMargin = 24.0;
 
 class TrimSlider extends StatefulWidget {
+  var key;
+
   /// Slider that trim video length.
-  const TrimSlider({
-    super.key,
+   TrimSlider({
+    this.key,
     required this.controller,
     this.height = 60,
     this.horizontalMargin = 0.0,

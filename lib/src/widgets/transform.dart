@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:video_timeline_edittor/src/models/transform_data.dart';
 
 class CropTransform extends StatelessWidget {
-  const CropTransform({
-    super.key,
+  var key;
+   CropTransform({
+    this.key,
     required this.transform,
     required this.child,
-  });
+  }):super(key: key);
 
   final Widget child;
   final TransformData transform;
@@ -32,12 +33,14 @@ class CropTransform extends StatelessWidget {
 
 /// [CropTransform] with rotation animation
 class CropTransformWithAnimation extends StatelessWidget {
-  const CropTransformWithAnimation({
-    super.key,
+  var key;
+
+   CropTransformWithAnimation({
+    this.key,
     required this.transform,
     required this.child,
     this.shouldAnimate = true,
-  });
+  }):super(key: key);
 
   final Widget child;
   final TransformData transform;

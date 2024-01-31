@@ -10,8 +10,10 @@ import 'package:video_timeline_edittor/src/widgets/image_viewer.dart';
 import 'package:video_timeline_edittor/src/widgets/transform.dart';
 
 class ThumbnailSlider extends StatefulWidget {
-  const ThumbnailSlider({
-    super.key,
+  var key;
+
+   ThumbnailSlider({
+    this.key,
     required this.controller,
     this.height = 60,
   });
@@ -160,7 +162,7 @@ class _ThumbnailSliderState extends State<ThumbnailSlider> {
             if (!isPlaceholder && _layout != size) {
               _layout = size;
               // init the widget with controller values
-              WidgetsBinding.instance.addPostFrameCallback((_) => _scaleRect());
+              WidgetsBinding.instance?.addPostFrameCallback((_) => _scaleRect());
             }
 
             return RepaintBoundary(

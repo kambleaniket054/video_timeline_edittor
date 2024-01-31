@@ -125,15 +125,30 @@ abstract class FFmpegVideoEditorConfig {
 }
 
 class VideoFFmpegVideoEditorConfig extends FFmpegVideoEditorConfig {
+  final String? name;
+
+  /// If the [outputDirectory] is `null`, then it uses `TemporaryDirectory`.
+  final String? outputDirectory;
+
+  /// The [scale] is `scale=width*scale:height*scale` and reduce or increase the file dimensions.
+  /// Defaults to `1.0`.
+  final double scale;
+
+  /// Set [isFiltersEnabled] to `false` if you do not want to apply any changes.
+  /// Defaults to `true`.
+  final bool isFiltersEnabled;
+
+  final controller;
+
   const VideoFFmpegVideoEditorConfig(
-    super.controller, {
-    super.name,
-    super.outputDirectory,
-    super.scale,
-    super.isFiltersEnabled,
+    this.controller, {
+    this.name,
+    this.outputDirectory,
+    required this.scale,
+    required this.isFiltersEnabled,
     this.format = VideoExportFormat.mp4,
     this.commandBuilder,
-  });
+  }) : super(controller,name: name,scale: scale,isFiltersEnabled: isFiltersEnabled);
 
   /// The [format] of the video to be exported.
   /// You can export as a GIF file by using [VideoExportFormat.gif] or with
@@ -195,16 +210,30 @@ class VideoFFmpegVideoEditorConfig extends FFmpegVideoEditorConfig {
 }
 
 class CoverFFmpegVideoEditorConfig extends FFmpegVideoEditorConfig {
+  final String? name;
+
+  /// If the [outputDirectory] is `null`, then it uses `TemporaryDirectory`.
+  final String? outputDirectory;
+
+  /// The [scale] is `scale=width*scale:height*scale` and reduce or increase the file dimensions.
+  /// Defaults to `1.0`.
+  final double scale;
+
+  /// Set [isFiltersEnabled] to `false` if you do not want to apply any changes.
+  /// Defaults to `true`.
+  final bool isFiltersEnabled;
+
+  final controller;
   const CoverFFmpegVideoEditorConfig(
-    super.controller, {
-    super.name,
-    super.outputDirectory,
-    super.scale,
-    super.isFiltersEnabled,
+    this.controller, {
+    this.name,
+    this.outputDirectory,
+    required this.scale,
+    required this.isFiltersEnabled,
     this.format = CoverExportFormat.jpg,
     this.quality = 100,
     this.commandBuilder,
-  });
+  }):super(controller,name: name,scale: scale,isFiltersEnabled: isFiltersEnabled);
 
   /// The [format] of the cover image to be exported.
   ///

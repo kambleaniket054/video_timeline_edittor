@@ -6,9 +6,11 @@ import 'package:video_timeline_edittor/src/models/transform_data.dart';
 import 'package:video_timeline_edittor/src/widgets/crop/crop_mixin.dart';
 
 class CoverViewer extends StatefulWidget {
+  var key;
+
   /// It is the viewer that show the selected cover
-  const CoverViewer({
-    super.key,
+   CoverViewer({
+    this.key,
     required this.controller,
     this.noCoverText = 'No selection',
   });

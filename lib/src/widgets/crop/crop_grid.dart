@@ -21,16 +21,18 @@ enum CropBoundaries {
 }
 
 class CropGridViewer extends StatefulWidget {
+  var key;
+
   /// It is the viewer that allows you to crop the video
-  const CropGridViewer.preview({
-    super.key,
+   CropGridViewer.preview({
+    this.key,
     required this.controller,
   })  : showGrid = false,
         rotateCropArea = true,
         margin = EdgeInsets.zero;
 
-  const CropGridViewer.edit({
-    super.key,
+   CropGridViewer.edit({
+    this.key,
     required this.controller,
     this.margin = const EdgeInsets.symmetric(horizontal: 20),
     this.rotateCropArea = true,
@@ -312,7 +314,7 @@ class _CropGridViewerState extends State<CropGridViewer> with CropPreviewMixin {
   void updateRectFromBuild() {
     if (widget.showGrid) {
       // init the crop area with preferredCropAspectRatio
-      WidgetsBinding.instance.addPostFrameCallback((_) => _updateRect());
+      WidgetsBinding.instance?.addPostFrameCallback((_) => _updateRect());
     } else {
       // init the widget with controller values if it is not the croping screen
       _scaleRect();

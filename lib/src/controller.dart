@@ -1,10 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:video_editor/src/utils/helpers.dart';
-import 'package:video_editor/src/utils/thumbnails.dart';
-import 'package:video_editor/src/models/cover_data.dart';
-import 'package:video_editor/video_editor.dart';
+import 'package:video_timeline_edittor/src/utils/helpers.dart';
+import 'package:video_timeline_edittor/src/utils/thumbnails.dart';
+import 'package:video_timeline_edittor/src/models/cover_data.dart';
+import 'package:video_timeline_edittor/video_editor.dart';
 import 'package:video_player/video_player.dart';
+import 'package:video_timeline_edittor/src/utils/helpers.dart';
+import 'package:video_timeline_edittor/src/utils/thumbnails.dart';
+
+import '../video_editor.dart';
+import 'models/cover_data.dart';
 
 class VideoMinDurationError extends Error {
   final Duration minDuration;

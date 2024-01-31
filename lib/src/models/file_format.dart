@@ -13,7 +13,9 @@ class FileFormat {
 /// VideoExportFormat('mkv');
 /// ```
 class VideoExportFormat extends FileFormat {
-  const VideoExportFormat(super.extension);
+ final  extension;
+
+  const VideoExportFormat(this.extension) : super(extension);
 
   static const avi = VideoExportFormat('avi');
   static const gif = GifExportFormat();
@@ -40,7 +42,9 @@ class GifExportFormat extends VideoExportFormat {
 /// CoverExportFormat('jpeg');
 /// ```
 class CoverExportFormat extends FileFormat {
-  const CoverExportFormat(super.extension);
+  final extension;
+
+  const CoverExportFormat(this.extension) : super(extension);
 
   static const jpg = CoverExportFormat('jpg');
   static const png = CoverExportFormat('png');

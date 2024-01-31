@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:video_timeline_edittor/src/controller.dart';
 
 class TrimTimeline extends StatelessWidget {
+  var key;
+
   /// Show the timeline corresponding to the [TrimSlider]
-  const TrimTimeline({
-    super.key,
+   TrimTimeline({
+    this.key,
     required this.controller,
     this.quantity = 8,
     this.padding = EdgeInsets.zero,

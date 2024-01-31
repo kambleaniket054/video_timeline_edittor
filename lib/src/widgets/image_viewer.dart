@@ -5,13 +5,15 @@ import 'package:transparent_image/transparent_image.dart';
 import 'package:video_timeline_edittor/src/controller.dart';
 
 class ImageViewer extends StatelessWidget {
-  const ImageViewer({
-    super.key,
+  var key;
+
+   ImageViewer({
+    this.key,
     required this.controller,
     required this.bytes,
     this.child,
     this.fadeIn = true,
-  });
+  }):super(key: key);
 
   final VideoEditorController controller;
   final Uint8List bytes;
