@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:video_editor_2/domain/bloc/controller.dart';
+import 'package:video_editor/src/controller.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoViewer extends StatelessWidget {
@@ -11,7 +11,13 @@ class VideoViewer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _onTap,
+      onTap: () {
+        if (controller.video.value.isPlaying) {
+          controller.video.pause();
+        } else {
+          controller.video.play();
+        }
+      },
       child: Center(
         child: Stack(
           children: [
@@ -28,13 +34,5 @@ class VideoViewer extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _onTap() {
-    if (controller.video.value.isPlaying) {
-      controller.video.pause();
-    } else {
-      controller.video.play();
-    }
   }
 }

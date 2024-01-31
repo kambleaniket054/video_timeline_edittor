@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:video_editor_2/domain/bloc/controller.dart';
-import 'package:video_editor_2/domain/entities/cover_data.dart';
-import 'package:video_editor_2/domain/entities/cover_style.dart';
-import 'package:video_editor_2/domain/entities/transform_data.dart';
-import 'package:video_editor_2/domain/helpers.dart';
-import 'package:video_editor_2/domain/thumbnails.dart';
-import 'package:video_editor_2/ui/crop/crop_grid_painter.dart';
-import 'package:video_editor_2/ui/image_viewer.dart';
-import 'package:video_editor_2/ui/transform.dart';
+import 'package:video_editor/src/controller.dart';
+import 'package:video_editor/src/utils/helpers.dart';
+import 'package:video_editor/src/utils/thumbnails.dart';
+import 'package:video_editor/src/models/cover_data.dart';
+import 'package:video_editor/src/models/cover_style.dart';
+import 'package:video_editor/src/models/transform_data.dart';
+import 'package:video_editor/src/widgets/crop/crop_grid_painter.dart';
+import 'package:video_editor/src/widgets/image_viewer.dart';
+import 'package:video_editor/src/widgets/transform.dart';
 
 class CoverSelection extends StatefulWidget {
   /// Slider that allow to select a generated cover
@@ -17,7 +17,6 @@ class CoverSelection extends StatefulWidget {
     super.key,
     required this.controller,
     this.size = 60,
-    this.quality = 10,
     this.quantity = 5,
     this.wrap,
     this.selectedCoverBuilder,
@@ -30,11 +29,6 @@ class CoverSelection extends StatefulWidget {
   ///
   /// Defaults to `60`
   final double size;
-
-  /// The [quality] param specifies the quality of the generated thumbnails, from 0 to 100 ([more info](https://pub.dev/packages/video_thumbnail))
-  ///
-  /// Defaults to `10`
-  final int quality;
 
   /// The [quantity] param specifies the quantity of thumbnails to generate
   ///
@@ -105,7 +99,6 @@ class _CoverSelectionState extends State<CoverSelection>
   Stream<List<CoverData>> _generateCoverThumbnails() => generateCoverThumbnails(
         widget.controller,
         quantity: widget.quantity,
-        quality: widget.quality,
       );
 
   /// Returns the max size the layout should take with the rect value

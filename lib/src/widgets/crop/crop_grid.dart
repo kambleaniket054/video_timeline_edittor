@@ -1,11 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:video_editor_2/domain/bloc/controller.dart';
-import 'package:video_editor_2/domain/entities/transform_data.dart';
-import 'package:video_editor_2/domain/helpers.dart';
-import 'package:video_editor_2/ui/crop/crop_mixin.dart';
-import 'package:video_editor_2/ui/video_viewer.dart';
+import 'package:video_editor/src/controller.dart';
+import 'package:video_editor/src/utils/helpers.dart';
+import 'package:video_editor/src/models/transform_data.dart';
+import 'package:video_editor/src/widgets/crop/crop_mixin.dart';
 
 @protected
 enum CropBoundaries {
@@ -323,7 +322,7 @@ class _CropGridViewerState extends State<CropGridViewer> with CropPreviewMixin {
   @override
   Widget buildView(BuildContext context, TransformData transform) {
     // return crop view without the grid
-    if (!widget.showGrid) {
+    if (widget.showGrid == false) {
       return _buildCropView(transform);
     }
 

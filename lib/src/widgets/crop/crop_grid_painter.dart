@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:video_editor_2/domain/entities/crop_style.dart';
-import 'package:video_editor_2/ui/crop/crop_grid.dart';
+import 'package:video_editor/src/models/crop_style.dart';
+import 'package:video_editor/src/widgets/crop/crop_grid.dart';
 
 class CropGridPainter extends CustomPainter {
   const CropGridPainter(
@@ -37,17 +37,15 @@ class CropGridPainter extends CustomPainter {
 
     // extract [rect] area from the canvas
     canvas.drawPath(
-      Path()
-        ..fillType = PathFillType.evenOdd
-        ..addRect(
-          Rect.fromLTWH(
-            -margin,
-            -margin,
-            size.width + margin * 2,
-            size.height + margin * 2,
-          ),
-        )
-        ..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(radius))),
+      Path.combine(
+        PathOperation.difference,
+        Path()
+          ..addRect(Rect.fromLTWH(-margin, -margin, size.width + margin * 2,
+              size.height + margin * 2)),
+        Path()
+          ..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(radius)))
+          ..close(),
+      ),
       paint,
     );
   }

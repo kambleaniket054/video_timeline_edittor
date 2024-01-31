@@ -1,18 +1,12 @@
 import 'dart:io';
-
-import 'package:cross_file/cross_file.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:video_editor_2/domain/entities/cover_data.dart';
-import 'package:video_editor_2/domain/entities/cover_style.dart';
-import 'package:video_editor_2/domain/entities/crop_style.dart';
-import 'package:video_editor_2/domain/entities/ffmpeg_config.dart';
-import 'package:video_editor_2/domain/entities/trim_style.dart';
-import 'package:video_editor_2/domain/helpers.dart';
-import 'package:video_editor_2/domain/thumbnails.dart';
+import 'package:video_editor/src/utils/helpers.dart';
+import 'package:video_editor/src/utils/thumbnails.dart';
+import 'package:video_editor/src/models/cover_data.dart';
+import 'package:video_editor/video_editor.dart';
 import 'package:video_player/video_player.dart';
 
-class VideoMinDurationError implements Exception {
+class VideoMinDurationError extends Error {
   final Duration minDuration;
   final Duration videoDuration;
 
@@ -25,37 +19,11 @@ class VideoMinDurationError implements Exception {
 
 enum RotateDirection { left, right }
 
-/// A preset is a collection of options that will provide a certain encoding speed to compression ratio.
-///
-/// A slower preset will provide better compression (compression is quality per filesize).
-///
-/// This means that, for example, if you target a certain file size or constant bit rate,
-/// you will achieve better quality with a slower preset.
-/// Similarly, for constant quality encoding,
-/// you will simply save bitrate by choosing a slower preset.
-enum VideoExportPreset {
-  none,
-  ultrafast,
-  superfast,
-  veryfast,
-  faster,
-  fast,
-  medium,
-  slow,
-  slower,
-  veryslow;
-
-  /// Convert [VideoExportPreset] to ffmpeg preset as a [String], [More info about presets](https://trac.ffmpeg.org/wiki/Encode/H.264)
-  ///
-  /// Return [String] in `-preset xxx` format
-  String get ffmpegPreset => this == none ? '' : '-preset $name';
-}
-
 /// The default value of this property `Offset(1.0, 1.0)`
-const Offset _max = Offset(1.0, 1.0);
+const Offset maxOffset = Offset(1.0, 1.0);
 
 /// The default value of this property `Offset.zero`
-const Offset _min = Offset.zero;
+const Offset minOffset = Offset.zero;
 
 /// Provides an easy way to change edition parameters to apply in the different widgets of the package and at the exportion
 /// This controller allows to : rotate, crop, trim, cover generation and exportation (video and cover)
@@ -69,11 +37,8 @@ class VideoEditorController extends ChangeNotifier {
   /// Style for [CropGridViewer]
   final CropGridStyle cropStyle;
 
-  /// Video from [XFile].
-  final XFile file;
-
-  /// Quality of default thumbnail
-  final int defaultCoverThumbnailQuality;
+  /// Video from [File].
+  final File file;
 
   /// Constructs a [VideoEditorController] that edits a video from a file.
   ///
@@ -82,26 +47,18 @@ class VideoEditorController extends ChangeNotifier {
     this.file, {
     this.maxDuration = Duration.zero,
     this.minDuration = Duration.zero,
+    this.coverThumbnailsQuality = 10,
+    this.trimThumbnailsQuality = 10,
     this.coverStyle = const CoverSelectionStyle(),
     this.cropStyle = const CropGridStyle(),
     TrimSliderStyle? trimStyle,
-    this.defaultCoverThumbnailQuality = 10,
-  })  : _video = kIsWeb
-            ? VideoPlayerController.network(file.path)
-            : VideoPlayerController.file(
-                File(
-                  // https://github.com/flutter/flutter/issues/40429#issuecomment-549746165
-                  Platform.isIOS ? Uri.encodeFull(file.path) : file.path,
-                ),
-              ),
+  })  : _video = VideoPlayerController.file(File(
+          // https://github.com/flutter/flutter/issues/40429#issuecomment-549746165
+          Platform.isIOS ? Uri.encodeFull(file.path) : file.path,
+        )),
         trimStyle = trimStyle ?? TrimSliderStyle(),
         assert(maxDuration > minDuration,
-            'The maximum duration must be bigger than the minimum duration'),
-        assert(
-          defaultCoverThumbnailQuality > 0 &&
-              defaultCoverThumbnailQuality <= 100,
-          'defaultCoverThumbnailQuality should be between 0 and 100',
-        );
+            'The maximum duration must be bigger than the minimum duration');
 
   int _rotation = 0;
   bool _isTrimming = false;
@@ -110,14 +67,14 @@ class VideoEditorController extends ChangeNotifier {
 
   double? _preferredCropAspectRatio;
 
-  double _minTrim = _min.dx;
-  double _maxTrim = _max.dx;
+  double _minTrim = minOffset.dx;
+  double _maxTrim = maxOffset.dx;
 
-  Offset _minCrop = _min;
-  Offset _maxCrop = _max;
+  Offset _minCrop = minOffset;
+  Offset _maxCrop = maxOffset;
 
-  Offset cacheMinCrop = _min;
-  Offset cacheMaxCrop = _max;
+  Offset cacheMinCrop = minOffset;
+  Offset cacheMaxCrop = maxOffset;
 
   Duration _trimEnd = Duration.zero;
   Duration _trimStart = Duration.zero;
@@ -144,9 +101,7 @@ class VideoEditorController extends ChangeNotifier {
 
   /// Get the [VideoPlayerController.value.size]
   Size get videoDimension => _video.value.size;
-
   double get videoWidth => videoDimension.width;
-
   double get videoHeight => videoDimension.height;
 
   /// The [minTrim] param is the minimum position of the trimmed area on the slider
@@ -192,7 +147,6 @@ class VideoEditorController extends ChangeNotifier {
 
   /// The [preferredCropAspectRatio] param is the selected aspect ratio (9:16, 3:4, 1:1, ...)
   double? get preferredCropAspectRatio => _preferredCropAspectRatio;
-
   set preferredCropAspectRatio(double? value) {
     if (preferredCropAspectRatio == value) return;
     _preferredCropAspectRatio = value;
@@ -293,21 +247,6 @@ class VideoEditorController extends ChangeNotifier {
   //VIDEO CROP//
   //----------//
 
-  /// Convert the [minCrop] and [maxCrop] param in to a [String]
-  /// used to provide crop values to Ffmpeg ([see more](https://ffmpeg.org/ffmpeg-filters.html#crop))
-  ///
-  /// The result is in the format `crop=w:h:x:y`
-  String _getCrop() {
-    if (minCrop <= _min && maxCrop >= _max) return "";
-
-    final enddx = videoWidth * maxCrop.dx;
-    final enddy = videoHeight * maxCrop.dy;
-    final startdx = videoWidth * minCrop.dx;
-    final startdy = videoHeight * minCrop.dy;
-
-    return "crop=${enddx - startdx}:${enddy - startdy}:$startdx:$startdy";
-  }
-
   /// Update the [minCrop] and [maxCrop] with [cacheMinCrop] and [cacheMaxCrop]
   void applyCacheCrop() => updateCrop(cacheMinCrop, cacheMaxCrop);
 
@@ -339,12 +278,17 @@ class VideoEditorController extends ChangeNotifier {
   void updateTrim(double min, double max) {
     assert(min < max,
         'Minimum trim value ($min) cannot be bigger and maximum trim value ($max)');
-
     // check that the new params does not cause a wrong duration
-    final newDuration = Duration(
-        milliseconds: (videoDuration.inMilliseconds * (max - min)).toInt());
-    assert(newDuration <= maxDuration && newDuration >= minDuration,
-        'Trim duration ($newDuration) cannot be bigger than $maxDuration or smaller than $minDuration');
+    final double newDuration = videoDuration.inMicroseconds * (max - min);
+    // since [Duration] object does not takes integer we must round the
+    // new duration up and down to check if the values are correct or not (#157)
+    final Duration newDurationCeil = Duration(microseconds: newDuration.ceil());
+    final Duration newDurationFloor =
+        Duration(microseconds: newDuration.floor());
+    assert(newDurationFloor <= maxDuration,
+        'Trim duration ($newDurationFloor) cannot be smaller than $minDuration');
+    assert(newDurationCeil >= minDuration,
+        'Trim duration ($newDurationCeil) cannot be bigger than $maxDuration');
 
     _minTrim = min;
     _maxTrim = max;
@@ -366,10 +310,6 @@ class VideoEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Returns the ffmpeg command to apply the trim start and end parameters
-  /// [see ffmpeg doc](https://trac.ffmpeg.org/wiki/Seeking#Cuttingsmallsections)
-  String get _trimCmd => "-ss $_trimStart -to $_trimEnd";
-
   /// Get the [isTrimmed]
   ///
   /// `true` if the trimmed value has beem changed
@@ -379,7 +319,6 @@ class VideoEditorController extends ChangeNotifier {
   ///
   /// `true` if the trimming values are curently getting updated
   bool get isTrimming => _isTrimming;
-
   set isTrimming(bool value) {
     _isTrimming = value;
     if (!value) {
@@ -388,16 +327,23 @@ class VideoEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Get the [maxDuration] param
+  /// Get the [maxDuration] param. By giving this parameters, you ensure that
+  /// the UI and controller function will avoid to select or generate a video
+  /// bigger than this [Duration].
   ///
-  /// if no [maxDuration] param given in VideoEditorController constructor, maxDuration is equals to the videoDuration
+  /// If the value of [maxDuration] is bigger than [videoDuration],
+  /// then this parameter will be ignored.
+  ///
+  /// Defaults to [videoDuration].
   Duration maxDuration;
 
-  /// Get the [minDuration] param
+  /// Get the [minDuration] param. By giving this parameters, you ensure that
+  /// the UI and controller function will avoid to select or generate a video
+  /// smaller than this [Duration].
   ///
-  /// if no [minDuration] param given in VideoEditorController constructor, minDuration is equals to [Duration.zero]
-  /// throw a [VideoMinDurationError] error at initialization if the [minDuration] is bigger then [videoDuration]
-  Duration minDuration;
+  /// Defaults to [Duration.zero].
+  /// Throw a [VideoMinDurationError] error at initialization if the [minDuration] is bigger then [videoDuration]
+  final Duration minDuration;
 
   /// Get the [trimPosition], which is the videoPosition in the trim slider
   ///
@@ -408,6 +354,18 @@ class VideoEditorController extends ChangeNotifier {
   //-----------//
   //VIDEO COVER//
   //-----------//
+
+  /// The [coverThumbnailsQuality] param specifies the quality of the generated
+  /// cover selection thumbnails (from 0 to 100 ([more info](https://pub.dev/packages/video_thumbnail)))
+  ///
+  /// Defaults to `10`.
+  final int coverThumbnailsQuality;
+
+  /// The [trimThumbnailsQuality] param specifies the quality of the generated
+  /// trim slider thumbnails (from 0 to 100 ([more info](https://pub.dev/packages/video_thumbnail)))
+  ///
+  /// Defaults to `10`.
+  final int trimThumbnailsQuality;
 
   /// Replace selected cover by [selectedCover]
   void updateSelectedCover(CoverData selectedCover) async {
@@ -424,12 +382,12 @@ class VideoEditorController extends ChangeNotifier {
     }
   }
 
-  /// Generate cover at [startTrim] time in milliseconds
+  /// Generate cover thumbnail at [startTrim] time in milliseconds
   void generateDefaultCoverThumbnail() async {
     final defaultCover = await generateSingleCoverThumbnail(
       file.path,
       timeMs: startTrim.inMilliseconds,
-      quality: defaultCoverThumbnailQuality,
+      quality: coverThumbnailsQuality,
     );
     updateSelectedCover(defaultCover);
   }
@@ -465,38 +423,4 @@ class VideoEditorController extends ChangeNotifier {
   }
 
   bool get isRotated => rotation == 90 || rotation == 270;
-
-  /// Convert the [rotation] value into a [String]
-  /// used to provide crop values to Ffmpeg ([see more](https://ffmpeg.org/ffmpeg-filters.html#transpose-1))
-  ///
-  /// The result is in the format `transpose=2` (repeated for every 90 degrees rotations)
-  String _getRotation() {
-    final count = rotation / 90;
-    if (count <= 0 || count >= 4) return "";
-
-    List<String> transpose = [];
-    for (int i = 0; i < rotation / 90; i++) {
-      transpose.add("transpose=2");
-    }
-    return transpose.isNotEmpty ? transpose.join(',') : "";
-  }
-
-  //--------//
-  // EXPORT //
-  //--------//
-
-  VideoFFmpegConfig createVideoFFmpegConfig() {
-    return VideoFFmpegConfig(
-      trimCommand: _trimCmd,
-      crop: _getCrop(),
-      rotation: _getRotation(),
-    );
-  }
-
-  CoverFFmpegConfig createCoverFFmpegConfig() {
-    return CoverFFmpegConfig(
-      crop: _getCrop(),
-      rotation: _getRotation(),
-    );
-  }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:video_editor_2/domain/entities/trim_style.dart';
+import 'package:video_editor/src/models/trim_style.dart';
 
 class TrimSliderPainter extends CustomPainter {
   const TrimSliderPainter(
@@ -27,10 +27,13 @@ class TrimSliderPainter extends CustomPainter {
     // DRAW LEFT AND RIGHT BACKGROUNDS
     // extract [rect] trimmed area from the canvas
     canvas.drawPath(
-      Path()
-        ..fillType = PathFillType.evenOdd
-        ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
-        ..addRRect(rrect),
+      Path.combine(
+        PathOperation.difference,
+        Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
+        Path()
+          ..addRRect(rrect)
+          ..close(),
+      ),
       background,
     );
 
@@ -88,32 +91,30 @@ class TrimSliderPainter extends CustomPainter {
     required Offset centerRight,
     required double halfLineWidth,
   }) {
-    // DRAW TOP AND BOTTOM LINES
     canvas.drawPath(
-      Path()
-        ..addRect(
-          Rect.fromPoints(
+      Path.combine(
+        PathOperation.union,
+        // DRAW TOP AND BOTTOM LINES
+        Path()
+          ..addRect(Rect.fromPoints(
             rect.topLeft,
             rect.topRight - Offset(0.0, style.lineWidth),
+          ))
+          ..addRect(
+            Rect.fromPoints(
+              rect.bottomRight + Offset(0.0, style.lineWidth),
+              rect.bottomLeft,
+            ),
           ),
-        )
-        ..addRect(
-          Rect.fromPoints(
-            rect.bottomRight + Offset(0.0, style.lineWidth),
-            rect.bottomLeft,
-          ),
+        // DRAW EDGES
+        getEdgesBarPath(
+          size,
+          centerLeft: centerLeft,
+          centerRight: centerRight,
+          halfLineWidth: halfLineWidth,
         ),
+      ),
       edges,
-    );
-
-    // DRAW EDGES
-    paintEdgesBarPath(
-      canvas,
-      size,
-      edges: edges,
-      centerLeft: centerLeft,
-      centerRight: centerRight,
-      halfLineWidth: halfLineWidth,
     );
 
     paintIcons(canvas, centerLeft: centerLeft, centerRight: centerRight);
@@ -121,101 +122,102 @@ class TrimSliderPainter extends CustomPainter {
     paintIndicator(canvas, size);
   }
 
-  void paintEdgesBarPath(
-    Canvas canvas,
+  Path getEdgesBarPath(
     Size size, {
-    required Paint edges,
     required Offset centerLeft,
     required Offset centerRight,
     required double halfLineWidth,
   }) {
     if (style.borderRadius == 0) {
-      canvas.drawPath(
-        Path()
-          // LEFT EDGE
-          ..addRect(
-            Rect.fromCenter(
-              center: centerLeft,
-              width: style.edgesSize,
-              height: size.height + style.lineWidth * 2,
-            ),
-          )
-          // RIGTH EDGE
-          ..addRect(
-            Rect.fromCenter(
-              center: centerRight,
-              width: style.edgesSize,
-              height: size.height + style.lineWidth * 2,
-            ),
+      return Path()
+        // LEFT EDGE
+        ..addRect(
+          Rect.fromCenter(
+            center: centerLeft,
+            width: style.edgesSize,
+            height: size.height + style.lineWidth * 2,
           ),
-        edges,
-      );
+        )
+        // RIGTH EDGE
+        ..addRect(
+          Rect.fromCenter(
+            center: centerRight,
+            width: style.edgesSize,
+            height: size.height + style.lineWidth * 2,
+          ),
+        );
     }
 
     final borderRadius = Radius.circular(style.borderRadius);
 
-    /// Left and right edges, with a reversed border radius on the inside of the rect
-    canvas.drawPath(
+    /// Return left and right edges, with a reversed border radius on the inside of the rect
+    return Path()
       // LEFT EDGE
-      Path()
-        ..fillType = PathFillType.evenOdd
-        ..addRRect(
-          RRect.fromRectAndCorners(
-            Rect.fromLTWH(
-              centerLeft.dx - halfLineWidth,
-              -style.lineWidth,
-              style.edgeWidth + style.borderRadius,
-              size.height + style.lineWidth * 2,
+      ..addPath(
+        Path.combine(
+          PathOperation.difference,
+          Path()
+            ..addRRect(
+              RRect.fromRectAndCorners(
+                Rect.fromLTWH(
+                  centerLeft.dx - halfLineWidth,
+                  -style.lineWidth,
+                  style.edgeWidth + style.borderRadius,
+                  size.height + style.lineWidth * 2,
+                ),
+                topLeft: borderRadius,
+                bottomLeft: borderRadius,
+              ),
             ),
-            topLeft: borderRadius,
-            bottomLeft: borderRadius,
-          ),
-        )
-        ..addRRect(
-          RRect.fromRectAndCorners(
-            Rect.fromLTWH(
-              centerLeft.dx + halfLineWidth,
-              0.0,
-              style.borderRadius,
-              size.height,
+          Path()
+            ..addRRect(
+              RRect.fromRectAndCorners(
+                Rect.fromLTWH(
+                  centerLeft.dx + halfLineWidth,
+                  0.0,
+                  style.borderRadius,
+                  size.height,
+                ),
+                topLeft: borderRadius,
+                bottomLeft: borderRadius,
+              ),
             ),
-            topLeft: borderRadius,
-            bottomLeft: borderRadius,
-          ),
         ),
-      edges,
-    );
-
-    canvas.drawPath(
+        Offset.zero,
+      )
       // RIGHT EDGE
-      Path()
-        ..fillType = PathFillType.evenOdd
-        ..addRRect(
-          RRect.fromRectAndCorners(
-            Rect.fromLTWH(
-              centerRight.dx - halfLineWidth - style.borderRadius,
-              -style.lineWidth,
-              style.edgeWidth + style.borderRadius,
-              size.height + style.lineWidth * 2,
+      ..addPath(
+        Path.combine(
+          PathOperation.difference,
+          Path()
+            ..addRRect(
+              RRect.fromRectAndCorners(
+                Rect.fromLTWH(
+                  centerRight.dx - halfLineWidth - style.borderRadius,
+                  -style.lineWidth,
+                  style.edgeWidth + style.borderRadius,
+                  size.height + style.lineWidth * 2,
+                ),
+                topRight: borderRadius,
+                bottomRight: borderRadius,
+              ),
             ),
-            topRight: borderRadius,
-            bottomRight: borderRadius,
-          ),
-        )
-        ..addRRect(
-          RRect.fromRectAndCorners(
-            Rect.fromLTWH(
-              centerRight.dx - halfLineWidth - style.borderRadius,
-              0.0,
-              style.borderRadius,
-              size.height,
+          Path()
+            ..addRRect(
+              RRect.fromRectAndCorners(
+                Rect.fromLTWH(
+                  centerRight.dx - halfLineWidth - style.borderRadius,
+                  0.0,
+                  style.borderRadius,
+                  size.height,
+                ),
+                topRight: borderRadius,
+                bottomRight: borderRadius,
+              ),
             ),
-            topRight: borderRadius,
-            bottomRight: borderRadius,
-          ),
         ),
-      edges,
-    );
+        Offset.zero,
+      );
   }
 
   void paintCircle(
