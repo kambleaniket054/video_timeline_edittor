@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:video_editor/src/controller.dart';
-import 'package:video_editor/src/utils/helpers.dart';
-import 'package:video_editor/src/utils/thumbnails.dart';
-import 'package:video_editor/src/models/cover_data.dart';
-import 'package:video_editor/src/models/cover_style.dart';
-import 'package:video_editor/src/models/transform_data.dart';
-import 'package:video_editor/src/widgets/crop/crop_grid_painter.dart';
-import 'package:video_editor/src/widgets/image_viewer.dart';
-import 'package:video_editor/src/widgets/transform.dart';
+import 'package:video_timeline_edittor/src/controller.dart';
+import 'package:video_timeline_edittor/src/utils/helpers.dart';
+import 'package:video_timeline_edittor/src/utils/thumbnails.dart';
+import 'package:video_timeline_edittor/src/models/cover_data.dart';
+import 'package:video_timeline_edittor/src/models/cover_style.dart';
+import 'package:video_timeline_edittor/src/models/transform_data.dart';
+import 'package:video_timeline_edittor/src/widgets/crop/crop_grid_painter.dart';
+import 'package:video_timeline_edittor/src/widgets/image_viewer.dart';
+import 'package:video_timeline_edittor/src/widgets/transform.dart';
 
 class CoverSelection extends StatefulWidget {
   /// Slider that allow to select a generated cover

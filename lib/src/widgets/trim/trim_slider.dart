@@ -2,9 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:video_editor/src/controller.dart';
-import 'package:video_editor/src/widgets/trim/thumbnail_slider.dart';
-import 'package:video_editor/src/widgets/trim/trim_slider_painter.dart';
+import 'package:video_timeline_edittor/src/controller.dart';
+import 'package:video_timeline_edittor/src/widgets/trim/thumbnail_slider.dart';
+import 'package:video_timeline_edittor/src/widgets/trim/trim_slider_painter.dart';
 
 enum _TrimBoundaries { left, right, inside, progress }
 

@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-import 'package:video_editor/src/controller.dart';
-import 'package:video_editor/src/models/file_format.dart';
+import 'package:video_timeline_edittor/src/controller.dart';
+import 'package:video_timeline_edittor/src/models/file_format.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 class FFmpegVideoEditorExecute {
